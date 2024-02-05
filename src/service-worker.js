@@ -87,12 +87,17 @@ self.addEventListener('fetch', (event) => {
 
 	const resp = fetch(event.request)
 		.then((response) => {
+			// Guardar en caché la respuesta
+			caches.open('cache-dynamic').then((cache) => {
+				cache.put(event.request, response);
+			});
+
 			return response.clone();
 		})
 		.catch((err) => {
 			console.log('offline response');
-			// return caches.match
+			return caches.match(event.request);
 		});
 
-	event.respondeWith(resp);
+	event.respondWith(resp);
 });
