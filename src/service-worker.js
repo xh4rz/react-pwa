@@ -82,11 +82,22 @@ self.addEventListener('install', async (event) => {
 	]);
 });
 
+const apiOfflineFallbacks = [
+	'http://localhost:4000/api/auth/renew',
+	'http://localhost:4000/api/events'
+];
+
 self.addEventListener('fetch', (event) => {
-	if (event.request.url !== 'http://localhost:4000/api/auth/renew') return;
+	// if (event.request.url !== 'http://localhost:4000/api/auth/renew') return;
+
+	if (!apiOfflineFallbacks.includes(event.request.url)) return;
 
 	const resp = fetch(event.request)
 		.then((response) => {
+			if (!response) {
+				return caches.match(event.request);
+			}
+
 			// Guardar en caché la respuesta
 			caches.open('cache-dynamic').then((cache) => {
 				cache.put(event.request, response);
