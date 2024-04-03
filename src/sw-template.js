@@ -2,10 +2,13 @@ importScripts(
 	'https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js'
 );
 
+workbox.loadModule('workbox-background-sync');
+
 workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
 
 const { registerRoute } = workbox.routing;
-const { CacheFirst, NetworkFirst } = workbox.strategies;
+const { CacheFirst, NetworkFirst, NetworkOnly } = workbox.strategies;
+const { BackgroundSyncPlugin } = workbox.backgroundSync;
 
 registerRoute(
 	new RegExp(
@@ -29,4 +32,17 @@ registerRoute(
 registerRoute(
 	new RegExp('http://localhost:4000/api/events'),
 	new NetworkFirst()
+);
+
+// Posteos offline
+const bgSyncPlugin = new BackgroundSyncPlugin('posteos-offline', {
+	maxRetentionTime: 24 * 60 // Retry for max of 24 Hours (specified in minutes)
+});
+
+registerRoute(
+	new RegExp('http://localhost:4000/api/events'),
+	new NetworkOnly({
+		plugins: [bgSyncPlugin]
+	}),
+	'POST'
 );
